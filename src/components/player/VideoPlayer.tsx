@@ -1,0 +1,9 @@
+'use client';
+import React,{useEffect,useRef,useState} from 'react';
+import Hls from 'hls.js';
+export interface PlayerSource{id:string;name:string;url:string;quality?:string|null;kind?:string|null}
+export function VideoPlayer({sources,title='الحلقة الحالية',episodeNumber}:{sources:PlayerSource[];title?:string;episodeNumber?:number|string}){
+ const videoRef=useRef<HTMLVideoElement>(null); const [active,setActive]=useState(sources[0]); const [error,setError]=useState('');
+ useEffect(()=>{const v=videoRef.current;if(!v)return;setError('');let hls:Hls|null=null;const isHls=active.kind==='hls'||active.url.includes('.m3u8');if(isHls&&Hls.isSupported()){hls=new Hls({enableWorker:true});hls.on(Hls.Events.ERROR,(_,d)=>{if(d.fatal)setError('تعذر تشغيل هذا المصدر. جرّب مصدرًا آخر.');});hls.loadSource(active.url);hls.attachMedia(v);}else{v.src=active.url;v.onerror=()=>setError('تعذر تشغيل هذا المصدر.');}return()=>{hls?.destroy();v.removeAttribute('src');v.load()};},[active]);
+ return <div className="space-y-3"><div className="relative w-full overflow-hidden rounded-2xl border border-koon-cyan/20 bg-black shadow-2xl"><div className="absolute inset-x-0 top-0 z-10 p-4 bg-gradient-to-b from-black/80 to-transparent pointer-events-none flex justify-between"><span className="text-[10px] font-mono text-koon-cyan">KOON PLAYER</span><span className="text-xs">{title} • EP {episodeNumber}</span></div><video ref={videoRef} controls playsInline className="w-full aspect-video bg-black"/></div>{error&&<div className="rounded-xl border border-red-400/20 bg-red-400/5 p-3 text-xs text-red-300">{error}</div>}<div className="flex flex-wrap gap-2">{sources.map(s=><button key={s.id} onClick={()=>setActive(s)} className={`polygon-btn px-3 py-2 text-xs ${active.id===s.id?'bg-koon-cyan text-black font-bold':'glass-panel text-white/70'}`}>{s.name}{s.quality?` • ${s.quality}`:''}</button>)}</div></div>;
+}
