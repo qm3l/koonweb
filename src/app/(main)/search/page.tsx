@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { SciFiSearch } from '@/components/ui/SciFiSearch';
 import { AnimeCard } from '@/components/anime/AnimeCard';
@@ -16,7 +16,7 @@ const GENRES = [
   { id: 'romance', name: 'رومانسي' },
 ];
 
-export default function SearchPage() {
+function SearchContent() {
   const router = useRouter();
   const params = useSearchParams();
   const [selectedGenre, setSelectedGenre] = useState('all');
@@ -24,7 +24,6 @@ export default function SearchPage() {
   const [results, setResults] = useState<AnimeItem[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // البحث والجلب التفاعلي
   useEffect(() => {
     const fetchSearch = async () => {
       setLoading(true);
@@ -97,16 +96,13 @@ export default function SearchPage() {
 
   return (
     <div className="px-4 py-6 space-y-6">
-      {/* هيدر البحث */}
       <div className="space-y-1 text-right">
         <h1 className="text-xl font-bold text-white font-sans">مسبار البحث والتصفية</h1>
         <p className="text-xs text-koon-muted font-sans">ابحث بالاسم، التصنيف، أو أحدث الإصدارات</p>
       </div>
 
-      {/* حقل البحث الرئيسي */}
       <SciFiSearch onSearch={(q) => { setSearchQuery(q); router.replace(q ? `/search?q=${encodeURIComponent(q)}` : '/search'); }} initialValue={searchQuery} />
 
-      {/* شريط الأقسام المضلع السريع */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none dir-rtl">
         {GENRES.map((genre) => (
           <button
@@ -123,7 +119,6 @@ export default function SearchPage() {
         ))}
       </div>
 
-      {/* عرض النتائج */}
       <section className="space-y-3">
         <div className="flex items-center justify-between text-xs font-mono text-koon-muted">
           <span>نتائج البحث</span>
@@ -145,5 +140,13 @@ export default function SearchPage() {
         )}
       </section>
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-center text-koon-muted">جاري التحميل...</div>}>
+      <SearchContent />
+    </Suspense>
   );
 }
